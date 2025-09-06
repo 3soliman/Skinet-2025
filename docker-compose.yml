@@ -1,0 +1,24 @@
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: skinet-sql
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Your_strong_password_123
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql-data:/var/opt/mssql
+    restart: unless-stopped
+    networks:
+      - skinet-net
+
+networks:
+  skinet-net:
+    driver: bridge
+
+volumes:
+  mssql-data:
+    driver: local
+
