@@ -1,0 +1,95 @@
+# ASP.NET Core
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Tt]mp/
+[Nn]ugget/
+*.user
+*.suo
+*.userprefs
+*.csproj.user
+*.vscode/
+*.vs/
+*.swagger
+*.sqlite3
+*.db
+*.log
+*.tmp
+
+# Docker
+docker-compose.override.yml
+.dockerignore
+docker-data/
+
+# IDE
+.idea/
+.vs/
+.vscode/
+cursor/
+.rider/
+
+# OS
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# NuGet
+**/packages/
+*.nupkg
+nuget.exe
+NuGet.Config
+
+# Build outputs
+**/build/
+**/dist/
+**/out/
+**/publish/
+
+# Runtime files
+**/runtimes/
+**/wwwroot/js/*.js
+**/wwwroot/css/*.css
+
+# Environment files (مهم!)
+appsettings.Development.json
+appsettings.Production.json
+appsettings.Staging.json
+*.local.json
+*.secret.json
+secrets.json
+
+# Angular/Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dist/
+.angular/
+.cache/
+.parcel-cache/
+
+# Logs
+logs/
+*.log
+
+# Misc
+*.bak
+*.tmp
+*.temp
+*.orig
+*~
+
+# Database
+*.mdf
+*.ldf
+*.sdf
+
+# Backup files
+*.backup
+*.save
+
+# Visual Studio Code
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
