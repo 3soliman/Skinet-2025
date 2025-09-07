@@ -93,3 +93,20 @@ logs/
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+# Cursor-specific ignores
+.cursor/
+.cursorrules/
+.cursorignore
+.cursor/
+cursor-rules/
+.ai/
+.history/
+
+# Cursor temporary files
+*.cursor*
+*.ai.*
+*.prompt.*
+
+# User-specific Cursor files
+*.cursoruser

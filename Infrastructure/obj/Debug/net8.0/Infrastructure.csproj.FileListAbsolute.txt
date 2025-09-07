@@ -13,3 +13,4 @@ C:\Users\SOLIMAN_ALSABAHI\Desktop\skinet\Infrastructure\obj\Debug\net8.0\Infrast
 C:\Users\SOLIMAN_ALSABAHI\Desktop\skinet\Infrastructure\obj\Debug\net8.0\refint\Infrastructure.dll
 C:\Users\SOLIMAN_ALSABAHI\Desktop\skinet\Infrastructure\obj\Debug\net8.0\Infrastructure.pdb
 C:\Users\SOLIMAN_ALSABAHI\Desktop\skinet\Infrastructure\obj\Debug\net8.0\ref\Infrastructure.dll
+C:\Users\SOLIMAN_ALSABAHI\Desktop\skinet\Infrastructure\obj\Debug\net8.0\Infrastructure.sourcelink.json

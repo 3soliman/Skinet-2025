@@ -1,5 +1,5 @@
 using Core.Entities;
-using Infrastructure.Data;
+using Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,26 +9,42 @@ namespace API.Controllers;
 [Route("api/[controller]")]
 public class ProductsController : ControllerBase
 {
-    private readonly StoreContext _context;
+    private readonly IProductRepository _repository;
 
-    public ProductsController(StoreContext context)
+    public ProductsController(IProductRepository repository)
     {
-        _context = context;
+        _repository = repository;
     }
 
     // GET: api/products
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
+    public async Task<ActionResult<IEnumerable<Product>>> GetProducts(string? Brand,string? Type, string? sort)
     {
-        var products = await _context.Products.ToListAsync();
+        var products = await _repository.GetProductsAsync(Brand,Type, sort);
         return Ok(products);
+    }
+
+    // GET: api/products/brands
+    [HttpGet("brands")]
+    public async Task<ActionResult<IReadOnlyList<string>>> GetBrands()
+    {
+        var brands = await _repository.GetBrandsAsync();
+        return Ok(brands);
+    }
+
+    // GET: api/products/types
+    [HttpGet("types")]
+    public async Task<ActionResult<IReadOnlyList<string>>> GetTypes()
+    {
+        var types = await _repository.GetTypesAsync();
+        return Ok(types);
     }
 
     // GET: api/products/5
     [HttpGet("{id:int}")]
     public async Task<ActionResult<Product>> GetProduct(int id)
     {
-        var product = await _context.Products.FindAsync(id);
+        var product = await _repository.GetProductByIdAsync(id);
 
         if (product == null)
         {
@@ -47,8 +63,9 @@ public class ProductsController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        _context.Products.Add(product);
-        await _context.SaveChangesAsync();
+        _repository.AddProduct(product);
+        var saved = await _repository.SaveChangesAsync();
+        if (!saved) return StatusCode(500, "Failed to save product");
 
         return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
     }
@@ -57,7 +74,7 @@ public class ProductsController : ControllerBase
     [HttpPut("{id:int}")]
     public async Task<IActionResult> UpdateProduct(int id, Product product)
     {
-        if (id != product.Id)
+        if (id != product.Id || !ProductExists(id))
         {
             return BadRequest();
         }
@@ -66,24 +83,9 @@ public class ProductsController : ControllerBase
         {
             return BadRequest(ModelState);
         }
-
-        _context.Entry(product).State = EntityState.Modified;
-
-        try
-        {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!ProductExists(id))
-            {
-                return NotFound();
-            }
-            else
-            {
-                throw;
-            }
-        }
+        _repository.UpdateProduct(product);
+        var saved = await _repository.SaveChangesAsync();
+        if (!saved) return StatusCode(500, "Failed to save product");
 
         return NoContent();
     }
@@ -92,20 +94,18 @@ public class ProductsController : ControllerBase
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> DeleteProduct(int id)
     {
-        var product = await _context.Products.FindAsync(id);
+        var product = await _repository.GetProductByIdAsync(id);
         if (product == null)
         {
             return NotFound();
         }
 
-        _context.Products.Remove(product);
-        await _context.SaveChangesAsync();
+        _repository.DeleteProduct(product);
+        var saved = await _repository.SaveChangesAsync();
+        if (!saved) return StatusCode(500, "Failed to delete product");
 
         return NoContent();
     }
 
-    private bool ProductExists(int id)
-    {
-        return _context.Products.Any(e => e.Id == id);
-    }
+    private bool ProductExists(int id) => _repository.ProductExists(id);
 }
