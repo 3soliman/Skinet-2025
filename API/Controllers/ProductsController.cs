@@ -2,6 +2,7 @@ using Core.Entities;
 using Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Infrastructure.Data;
 
 namespace API.Controllers;
 
@@ -9,18 +10,39 @@ namespace API.Controllers;
 [Route("api/[controller]")]
 public class ProductsController : ControllerBase
 {
-    private readonly IProductRepository _repository;
+    private readonly IGenericRepository<Product> _genericRepository;
+    private readonly StoreContext _context;
 
-    public ProductsController(IProductRepository repository)
+    public ProductsController(IGenericRepository<Product> genericRepository, StoreContext context)
     {
-        _repository = repository;
+        _genericRepository = genericRepository;
+        _context = context;
     }
 
     // GET: api/products
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Product>>> GetProducts(string? Brand,string? Type, string? sort)
     {
-        var products = await _repository.GetProductsAsync(Brand,Type, sort);
+        var query = _context.Products.AsQueryable();
+        if(!string.IsNullOrEmpty(Brand))
+        {
+            query = query.Where(p => p.Brand == Brand);
+        }
+        if(!string.IsNullOrEmpty(Type))
+        {
+            query = query.Where(p => p.Type == Type);
+        }
+        if (!string.IsNullOrWhiteSpace(sort))
+        {
+            query = sort.ToLower() switch
+            {
+                "priceasc" => query.OrderBy(p => p.Price),
+                "pricedesc" => query.OrderByDescending(p => p.Price),
+                "name" => query.OrderBy(p => p.Name),
+                _ => query
+            };
+        }
+        var products = await query.ToListAsync();
         return Ok(products);
     }
 
@@ -28,7 +50,12 @@ public class ProductsController : ControllerBase
     [HttpGet("brands")]
     public async Task<ActionResult<IReadOnlyList<string>>> GetBrands()
     {
-        var brands = await _repository.GetBrandsAsync();
+        var brands = await _context.Products
+            .Select(p => p.Brand)
+            .Where(b => b != null && b != "")
+            .Distinct()
+            .OrderBy(b => b)
+            .ToListAsync();
         return Ok(brands);
     }
 
@@ -36,7 +63,12 @@ public class ProductsController : ControllerBase
     [HttpGet("types")]
     public async Task<ActionResult<IReadOnlyList<string>>> GetTypes()
     {
-        var types = await _repository.GetTypesAsync();
+        var types = await _context.Products
+            .Select(p => p.Type)
+            .Where(t => t != null && t != "")
+            .Distinct()
+            .OrderBy(t => t)
+            .ToListAsync();
         return Ok(types);
     }
 
@@ -44,7 +76,7 @@ public class ProductsController : ControllerBase
     [HttpGet("{id:int}")]
     public async Task<ActionResult<Product>> GetProduct(int id)
     {
-        var product = await _repository.GetProductByIdAsync(id);
+        var product = await _genericRepository.GetByIdAsync(id);
 
         if (product == null)
         {
@@ -63,8 +95,8 @@ public class ProductsController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        _repository.AddProduct(product);
-        var saved = await _repository.SaveChangesAsync();
+        await _genericRepository.AddAsync(product);
+        var saved = await _genericRepository.SaveAllAsync();
         if (!saved) return StatusCode(500, "Failed to save product");
 
         return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
@@ -74,7 +106,7 @@ public class ProductsController : ControllerBase
     [HttpPut("{id:int}")]
     public async Task<IActionResult> UpdateProduct(int id, Product product)
     {
-        if (id != product.Id || !ProductExists(id))
+        if (id != product.Id || !await _genericRepository.ExistsAsync(id))
         {
             return BadRequest();
         }
@@ -83,8 +115,8 @@ public class ProductsController : ControllerBase
         {
             return BadRequest(ModelState);
         }
-        _repository.UpdateProduct(product);
-        var saved = await _repository.SaveChangesAsync();
+        _genericRepository.Update(product);
+        var saved = await _genericRepository.SaveAllAsync();
         if (!saved) return StatusCode(500, "Failed to save product");
 
         return NoContent();
@@ -94,18 +126,16 @@ public class ProductsController : ControllerBase
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> DeleteProduct(int id)
     {
-        var product = await _repository.GetProductByIdAsync(id);
+        var product = await _genericRepository.GetByIdAsync(id);
         if (product == null)
         {
             return NotFound();
         }
 
-        _repository.DeleteProduct(product);
-        var saved = await _repository.SaveChangesAsync();
+        _genericRepository.Remove(product);
+        var saved = await _genericRepository.SaveAllAsync();
         if (!saved) return StatusCode(500, "Failed to delete product");
 
         return NoContent();
     }
-
-    private bool ProductExists(int id) => _repository.ProductExists(id);
 }
