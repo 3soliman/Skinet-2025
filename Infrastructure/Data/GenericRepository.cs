@@ -35,6 +35,21 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
         return await ApplySpecification(spec).ToListAsync();
     }
 
+    public async Task<TResult?> GetEntityWithSpecAsync<TResult>(ISpecification<T, TResult> spec)
+    {
+        return await ApplySpecification(spec).FirstOrDefaultAsync();
+    }
+
+    public async Task<IReadOnlyList<TResult>> ListAsync<TResult>(ISpecification<T, TResult> spec)
+    {
+        return await ApplySpecification(spec).ToListAsync();
+    }
+
+    public async Task<int> CountAsync(ISpecification<T> spec)
+    {
+        return await SpecificationEvaluator<T>.GetQueryForCount(_dbSet.AsQueryable(), spec).CountAsync();
+    }
+
     public async Task AddAsync(T entity)
     {
         await _dbSet.AddAsync(entity);
@@ -73,6 +88,11 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
     private IQueryable<T> ApplySpecification(ISpecification<T> spec)
     {
         return SpecificationEvaluator<T>.GetQuery(_dbSet.AsQueryable(), spec);
+    }
+
+    private IQueryable<TResult> ApplySpecification<TResult>(ISpecification<T, TResult> spec)
+    {
+        return SpecificationEvaluator.GetQuery(_dbSet.AsQueryable(), spec);
     }
 }
 
