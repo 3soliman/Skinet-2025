@@ -8,7 +8,7 @@ public class ProductSpecParams
     public string? Sort { get; set; }
 
     private const int MaxPageSize = 50;
-    private int _pageSize = 6;
+    private int _pageSize = 20;
 
     public int PageIndex { get; set; } = 1;
     public int PageSize

@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core'; // أضف inject
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Pagination } from '../../chared/models/pagination';
 import { Product } from '../../chared/models/product';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -12,8 +13,22 @@ export class ShopService {
   types: string[]=[];
   brands:string[]=[];
 
-  getProducts(){
-     return this.http.get<Pagination<Product>>(this.baseUrl + 'products?')
+  getProducts(brands?: string[], types?: string[], sort?: string): Observable<Pagination<Product>> {
+    let params = new HttpParams();
+    
+    if (brands && brands.length > 0) {
+      params = params.append('brands', brands.join(','));
+    }
+    
+    if (types && types.length > 0) {
+      params = params.append('types', types.join(','));
+    }
+    
+    if (sort) {
+      params = params.append('sort', sort);
+    }
+    
+    return this.http.get<Pagination<Product>>(`${this.baseUrl}products`, { params });
   }
 
   getBrands(){

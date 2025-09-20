@@ -5,6 +5,7 @@ import {MatListOption, MatSelectionList} from '@angular/material/list';
 import { OnInit, inject } from '@angular/core'; 
 import { MatButton } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { FormsModule } from '@angular/forms';
 @Component({
   selector: 'app-filters-dialog',
   imports: [
@@ -12,6 +13,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
     MatSelectionList,
     MatListOption,
     MatButton,
+    FormsModule,
   ],
   templateUrl: './filters-dialog.component.html',
   styleUrl: './filters-dialog.component.scss'
