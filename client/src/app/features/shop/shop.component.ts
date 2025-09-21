@@ -11,6 +11,10 @@ import { ProductItemComponent } from "./product-item/product-item.component";
 import { FiltersDialogComponent } from './filters-dialog/filters-dialog.component';
 import { MatListOption, MatSelectionList, MatSelectionListChange } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
+import { ShopParams } from '../../chared/models/shopParams';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { Pagination } from '../../chared/models/pagination';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-shop',
@@ -23,6 +27,8 @@ import { MatMenuModule } from '@angular/material/menu';
     MatMenuModule,
     MatSelectionList,
     MatListOption,
+    MatPaginatorModule,
+    FormsModule,
   ],
   templateUrl: './shop.component.html',
   styleUrl: './shop.component.scss'
@@ -31,11 +37,7 @@ export class ShopComponent implements OnInit {
   private shopService = inject(ShopService);
   private dialogService = inject(MatDialog);
   
-  products: Product[] = [];
-  selectedBrands: string[] = [];
-  selectedTypes: string[] = [];
-  selectedSort = 'name';
-  isLoading = false;
+  products?: Pagination<Product>;
 
   // خيارات الترتيب
   sortOptions = [
@@ -43,26 +45,25 @@ export class ShopComponent implements OnInit {
     { value: 'price', label: 'Price: Low to High' },
     { value: 'pricedesc', label: 'Price: High to Low' }
   ];
+  shopParams=new ShopParams();
+  totalItems = 0;
+  pageSizeOptions=[5,10,15,20];
 
   ngOnInit(): void {
     this.loadProducts();
   }
 
   loadProducts(): void {
-    this.isLoading = true;
     
     this.shopService.getProducts(
-      this.selectedBrands, 
-      this.selectedTypes, 
-      this.selectedSort
+      this.shopParams
     ).subscribe({
       next: (response: any) => {
-        this.products = response.data;
-        this.isLoading = false;
+        this.products = response;
+        this.totalItems=response.totalItems;
       },
       error: (error: any) => {
         console.error('Error loading products:', error);
-        this.isLoading = false;
       }
     });
   }
@@ -75,35 +76,45 @@ export class ShopComponent implements OnInit {
     const dialogRef = this.dialogService.open(FiltersDialogComponent, {
       width: '400px',
       data: {
-        selectedBrands: this.selectedBrands,
-        selectedTypes: this.selectedTypes
+        selectedBrands: this.shopParams.brands,
+        selectedTypes: this.shopParams.types
       }
     });
 
     dialogRef.afterClosed().subscribe((result: any) => {
       if (result) {
-        this.selectedBrands = result.selectedBrands;
-        this.selectedTypes = result.selectedTypes;
+        this.shopParams.brands = result.selectedBrands;
+        this.shopParams.types = result.selectedTypes;
+        this.shopParams.pageIndex=1;
         this.loadProducts(); // إعادة تحميل مع الفلاتر الجديدة
       }
     });
   }
-
+  onSearchChange(event: any) {
+    this.shopParams.pageIndex=1;
+    this.loadProducts();
+  }
+  handlePageEvent(event: PageEvent) {
+    this.shopParams.pageIndex = event.pageIndex + 1;
+    this.shopParams.pageSize = event.pageSize;
+    this.loadProducts();
+  }
  // دالة جديدة للترتيب
 onSortChange(event: MatSelectionListChange) {
   const selectedOption = event.options[0];
   if (selectedOption && selectedOption.selected) {
-    this.selectedSort = selectedOption.value;
-    console.log('Selected sort:', this.selectedSort);
+    this.shopParams.sort = selectedOption.value;
+    this.shopParams.pageIndex=1;
+    console.log('Selected sort:', this.shopParams.sort);
     this.loadProducts(); // إعادة تحميل المنتجات
   }
 }
 
   // مسح كل الفلاتر
   clearFilters(): void {
-    this.selectedBrands = [];
-    this.selectedTypes = [];
-    this.selectedSort = 'name';
+    this.shopParams.brands = [];
+    this.shopParams.types = [];
+    this.shopParams.sort = 'name';
     this.loadProducts();
   }
 }

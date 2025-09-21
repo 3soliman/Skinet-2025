@@ -1,28 +1,41 @@
-<div>
-    
-    <h3 class="text-3xl text-center pt-6 mb-3">filters</h3>
+<div class="p-4">
+    <h3 class="text-2xl text-center pt-2 mb-4 font-semibold">Filters</h3>
     <mat-divider></mat-divider>
-    <div class="flex p-4">
+    
+    <div class="flex p-4 gap-6">
+        <!-- Brands Section -->
         <div class="w-1/2">
-            <h4 class="font-semibold text-xl text-primary">Brands</h4>
-            <mat-selection-list [(ngModel)]="selectedBrands" [multiple]="true">
-                @for (brands of shopService.brands; track $index) {
-                    <mat-list-option [value]="brands">{{brands}}</mat-list-option>
-                }
-            </mat-selection-list>
+            <h4 class="font-semibold text-lg text-primary mb-3">Brands</h4>
+            @if (brands.length > 0) {
+                <mat-selection-list [(ngModel)]="selectedBrands" [multiple]="true">
+                    @for (brand of brands; track brand) {
+                        <mat-list-option [value]="brand">{{brand}}</mat-list-option>
+                    }
+                </mat-selection-list>
+            } @else {
+                <p class="text-gray-500">Loading brands...</p>
+            }
         </div>
+        
+        <!-- Types Section -->
         <div class="w-1/2">
-            <h4 class="font-semibold text-xl text-primary">types</h4>
-            <mat-selection-list [(ngModel)]="selectedTypes" [multiple]="true">
-                @for (types of shopService.types; track $index) {
-                    <mat-list-option [value]="types">{{types}}</mat-list-option>
-                }
-            </mat-selection-list>
+            <h4 class="font-semibold text-lg text-primary mb-3">Types</h4>
+            @if (types.length > 0) {
+                <mat-selection-list [(ngModel)]="selectedTypes" [multiple]="true">
+                    @for (type of types; track type) {
+                        <mat-list-option [value]="type">{{type}}</mat-list-option>
+                    }
+                </mat-selection-list>
+            } @else {
+                <p class="text-gray-500">Loading types...</p>
+            }
         </div>
-
     </div>
-    <div class="flex justify-end p-4">
-        <button mat-flat-button (click)="applyFilters()">Apply Filters</button>
-
+    
+    <mat-divider></mat-divider>
+    
+    <div class="flex justify-end p-4 gap-2">
+        <button mat-stroked-button (click)="cancel()">Cancel</button>
+        <button mat-flat-button color="primary" (click)="applyFilters()">Apply Filters</button>
     </div>
 </div>
